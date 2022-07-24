@@ -8,14 +8,14 @@ import { Spiner } from 'components/Loader/Loader';
 
 export class App extends Component {
   state = {
-    dataGallery: null,
+    dataGallery: [],
     status: 'idle',
     error: null,
-    loadMore: false,
   };
 
   page = null;
   searchData = '';
+  totalElSearch = null;
 
   onSearch = ({ searchData }, { resetForm }) => {
     if (searchData.trim() === '') {
@@ -23,6 +23,7 @@ export class App extends Component {
       return;
     }
 
+    this.totalElSearch = null;
     this.page = 1;
     this.searchData = searchData;
     this.setState({ status: 'pending' });
@@ -30,15 +31,17 @@ export class App extends Component {
     searchImages(searchData, this.page)
       .then(dataSearch => {
         if (dataSearch.hits.length === 0) {
-          this.setState({ dataGallery: null });
-
-          return Promise.reject(`Can't find ${searchData}, try something else`);
+          this.totalElSearch = null;
+          this.setState({ dataGallery: [] });
+          return Promise.reject(
+            `Can't find ${searchData} :-(, try something else`
+          );
         } else {
-          this.setState(prev => ({
-            loadMore: true,
+          this.totalElSearch = dataSearch.totalHits;
+          this.setState({
             dataGallery: dataSearch.hits,
             error: null,
-          }));
+          });
         }
       })
       .catch(error => this.setState({ error }))
@@ -57,16 +60,12 @@ export class App extends Component {
         this.setState(prevState => ({
           dataGallery: [...prevState.dataGallery, ...dataSearch.hits],
         }));
-
-        if (dataSearch.totalHits <= this.state.dataGallery.length + 12) {
-          this.setState({ loadMore: false });
-        }
       })
       .finally(this.setState({ status: 'resolved' }));
   };
 
   render() {
-    const { dataGallery, status, error, loadMore } = this.state;
+    const { dataGallery, status, error } = this.state;
     return (
       <Wrapper>
         <SearchBar onSearch={this.onSearch} />
@@ -77,7 +76,7 @@ export class App extends Component {
           </HelpText>
         )}
 
-        {status === 'resolved' && dataGallery && (
+        {status === 'resolved' && dataGallery.length !== 0 && (
           <ImageGallery dataGalleryArray={dataGallery} />
         )}
 
@@ -85,7 +84,9 @@ export class App extends Component {
 
         {error && <HelpText>{error}</HelpText>}
 
-        {loadMore.length > 12 && <LoadMore onLoadMore={this.onLoadMore} />}
+        {dataGallery.length < this.totalElSearch && (
+          <LoadMore onLoadMore={this.onLoadMore} />
+        )}
       </Wrapper>
     );
   }
