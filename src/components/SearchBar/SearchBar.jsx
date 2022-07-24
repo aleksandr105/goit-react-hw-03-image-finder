@@ -6,6 +6,7 @@ import {
 } from './SearchBar.styled';
 import { FcSearch } from 'react-icons/fc';
 import { Formik, ErrorMessage } from 'formik';
+import PropTypes from 'prop-types';
 
 let initialValues = {
   searchData: '',
@@ -31,4 +32,8 @@ export const SearchBar = ({ onSearch }) => {
       </Formik>
     </Header>
   );
+};
+
+SearchBar.propTypes = {
+  onSearch: PropTypes.func.isRequired,
 };

@@ -8,7 +8,14 @@ export const SpinerContainer = styled.div`
 
 export const SpinerText = styled.p`
   font-size: 25px;
-  font-weight: bold;
+  font-weight: 600;
   margin: 0;
-  color: #d9d500;
+  color: black;
+  /* background-color: #f8ff00; */
+  background: rgb(13, 89, 185);
+  background: linear-gradient(
+    180deg,
+    rgba(13, 89, 185, 1) 28%,
+    rgba(249, 250, 15, 1) 62%
+  );
 `;
