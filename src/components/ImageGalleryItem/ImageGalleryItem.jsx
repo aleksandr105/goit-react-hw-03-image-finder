@@ -1,7 +1,6 @@
 import { ImageGalleryItem, GalleryItemPhoto } from './ImageGalleryItem.styled';
 import { Modal } from 'components/Modal/Modal';
 import { Component } from 'react';
-// import PropTypes from 'prop-types';
 
 export class GalleryItem extends Component {
   state = {
@@ -36,14 +35,3 @@ export class GalleryItem extends Component {
     );
   }
 }
-
-// GalleryItem.propTypes = {
-//   dataGalleryArray: PropTypes.arrayOf(
-//     PropTypes.exact({
-//       id: PropTypes.number.isRequired,
-//       webformatURL: PropTypes.string.isRequired,
-//       largeImageURL: PropTypes.string.isRequired,
-//       tags: PropTypes.string.isRequired,
-//     })
-//   ),
-// };
