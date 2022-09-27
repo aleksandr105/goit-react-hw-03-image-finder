@@ -11,61 +11,71 @@ export class App extends Component {
     dataGallery: [],
     status: 'idle',
     error: null,
+    page: 1,
+    searchText: '',
+    totalElSearch: null,
   };
-
-  page = null;
-  searchData = '';
-  totalElSearch = null;
 
   onSearch = ({ searchData }, { resetForm }) => {
     if (searchData.trim() === '') {
       alert('Please enter a query keyword');
       return;
     }
-
-    this.totalElSearch = null;
-    this.page = 1;
-    this.searchData = searchData;
-    this.setState({ status: 'pending' });
-
-    searchImages(searchData, this.page)
-      .then(dataSearch => {
-        if (dataSearch.hits.length === 0) {
-          this.totalElSearch = null;
-          this.setState({ dataGallery: [] });
-          return Promise.reject(
-            `Can't find ${searchData} :-(, try something else`
-          );
-        } else {
-          this.totalElSearch = dataSearch.totalHits;
-          this.setState({
-            dataGallery: dataSearch.hits,
-            error: null,
-          });
-        }
-      })
-      .catch(error => this.setState({ error }))
-      .finally(() => this.setState({ status: 'resolved' }));
+    if (this.state.searchText === searchData) {
+      alert('request is the same as before');
+      return;
+    }
+    this.setState({
+      searchText: searchData,
+      status: 'pending',
+      page: 1,
+      totalElSearch: null,
+      dataGallery: [],
+    });
 
     resetForm();
   };
 
+  componentDidUpdate(_, prevState) {
+    if (
+      prevState.page !== this.state.page &&
+      prevState.searchText === this.state.searchText
+    ) {
+      searchImages(this.state.searchText, this.state.page)
+        .then(dataSearch => {
+          this.setState(prevState => ({
+            dataGallery: [...prevState.dataGallery, ...dataSearch.hits],
+          }));
+        })
+        .finally(this.setState({ status: 'resolved' }));
+    }
+
+    if (prevState.searchText !== this.state.searchText) {
+      searchImages(this.state.searchText, this.state.page)
+        .then(dataSearch => {
+          if (dataSearch.hits.length === 0) {
+            return Promise.reject(
+              `Can't find ${this.searchText} :-(, try something else`
+            );
+          } else {
+            this.setState({
+              dataGallery: dataSearch.hits,
+              error: null,
+              totalElSearch: dataSearch.totalHits,
+            });
+          }
+        })
+        .catch(error => this.setState({ error }))
+        .finally(() => this.setState({ status: 'resolved' }));
+    }
+  }
+
   onLoadMore = () => {
-    this.page += 1;
-
-    this.setState({ status: 'pending' });
-
-    searchImages(this.searchData, this.page)
-      .then(dataSearch => {
-        this.setState(prevState => ({
-          dataGallery: [...prevState.dataGallery, ...dataSearch.hits],
-        }));
-      })
-      .finally(this.setState({ status: 'resolved' }));
+    this.setState(prevState => ({ page: prevState.page + 1 }));
   };
 
   render() {
-    const { dataGallery, status, error } = this.state;
+    const { dataGallery, status, error, totalElSearch } = this.state;
     return (
       <Wrapper>
         <SearchBar onSearch={this.onSearch} />
@@ -84,7 +94,7 @@ export class App extends Component {
 
         {error && <HelpText>{error}</HelpText>}
 
-        {dataGallery.length < this.totalElSearch && (
+        {dataGallery.length < totalElSearch && status !== 'pending' && (
           <LoadMore onLoadMore={this.onLoadMore} />
         )}
       </Wrapper>
